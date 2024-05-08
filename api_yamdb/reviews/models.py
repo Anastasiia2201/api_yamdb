@@ -32,7 +32,7 @@ class Title(models.Model):
         null=True,
         on_delete=models.SET_NULL,
         related_name='categories',)
-    genre = models.ManyToManyField(Genre, through='GenreTitle')
+    genre = models.ManyToManyField(Genre, verbose_name='Жанр', through='GenreTitle')
 
     class Meta:
         verbose_name = 'Произведение'
