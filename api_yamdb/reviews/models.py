@@ -18,7 +18,8 @@ class Title(models.Model):
     rating = models.IntegerField(default=0)
     category = models.ForeignKey(
         Category,
-        on_delete=models.CASCADE,
+        null=True,
+        on_delete=models.SET_NULL,
         related_name='categories',)
     genre = models.ManyToManyField(Genre, through='GenreTitle')
 
