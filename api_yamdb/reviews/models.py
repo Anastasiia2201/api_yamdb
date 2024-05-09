@@ -87,8 +87,8 @@ class Review(models.Model):
     )
 
     class Meta:
-        verbose_name = "Отзыв"
-        verbose_name_plural = "Отзывы"
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
 
 
 class Comment(models.Model):
@@ -96,11 +96,11 @@ class Comment(models.Model):
 
     review = models.ForeignKey(
         Review,
-        verbose_name="Отзыв",
+        verbose_name='Отзыв',
         on_delete=models.CASCADE,
-        related_name="comments",
+        related_name='comments',
     )
 
     class Meta:
-        verbose_name = "Комментарий"
-        verbose_name_plural = "Комментарии"
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'

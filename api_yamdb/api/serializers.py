@@ -55,11 +55,11 @@ class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review."""
 
     def validate(self, data):
-        request = self.context.get("request")
-        if request.method != "POST":
+        request = self.context.get('request')
+        if request.method != 'POST':
             return data
         title = get_object_or_404(
-            Title, pk=self.context["view"].kwargs.get("title_id")
+            Title, pk=self.context['view'].kwargs['title_id']
         )
         if title.reviews.filter(author=request.user).exists():
             raise ValidationError(
@@ -69,7 +69,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        read_only_fields = ("title",)
+        read_only_fields = ('title',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -77,4 +77,4 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        read_only_fields = ("review",)
+        read_only_fields = ('review',)
