@@ -1,8 +1,10 @@
 import datetime as dt
 
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 
-from reviews.models import Title, Genre, Category
+from reviews.models import Category, Comment, Genre, Review, Title
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -47,3 +49,32 @@ class TitleSerializer(serializers.ModelSerializer):
         if value > year:
             raise serializers.ValidationError('Проверьте год выпуска!')
         return value
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Review."""
+
+    def validate(self, data):
+        request = self.context.get("request")
+        if request.method != "POST":
+            return data
+        title = get_object_or_404(
+            Title, pk=self.context["view"].kwargs.get("title_id")
+        )
+        if title.reviews.filter(author=request.user).exists():
+            raise ValidationError(
+                "Автор может оставить только один отзыв на произведение!"
+            )
+        return data
+
+    class Meta:
+        model = Review
+        read_only_fields = ("title",)
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Comment."""
+
+    class Meta:
+        model = Comment
+        read_only_fields = ("review",)
