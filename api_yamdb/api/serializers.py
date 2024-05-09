@@ -54,19 +54,6 @@ class TitleSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review."""
 
-    def validate(self, data):
-        request = self.context.get('request')
-        if request.method != 'POST':
-            return data
-        title = get_object_or_404(
-            Title, pk=self.context['view'].kwargs['title_id']
-        )
-        if title.reviews.filter(author=request.user).exists():
-            raise ValidationError(
-                "Автор может оставить только один отзыв на произведение!"
-            )
-        return data
-
     class Meta:
         model = Review
         read_only_fields = ('title',)
