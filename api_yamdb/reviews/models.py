@@ -10,6 +10,9 @@ class Category(models.Model):
         verbose_name_plural = 'Категории'
         default_related_name = 'categories'
 
+    def __str__(self):
+        return self.name
+
 
 class Genre(models.Model):
     name = models.CharField(max_length=256)
@@ -19,6 +22,9 @@ class Genre(models.Model):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
         default_related_name = 'genres'
+
+    def __str__(self):
+        return self.name
 
 
 class Title(models.Model):
@@ -32,7 +38,10 @@ class Title(models.Model):
         null=True,
         on_delete=models.SET_NULL,
         related_name='categories',)
-    genre = models.ManyToManyField(Genre, verbose_name='Жанр', through='GenreTitle')
+    genre = models.ManyToManyField(
+        Genre,
+        verbose_name='Жанр',
+        through='GenreTitle')
 
     class Meta:
         verbose_name = 'Произведение'
