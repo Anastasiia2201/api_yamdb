@@ -1,5 +1,8 @@
+from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
+User = get_user_model()
 
 RATING_MIN = 1
 RATING_MAX = 10
@@ -66,12 +69,18 @@ class GenreTitle(models.Model):
 class Review(models.Model):
     """Модель Review (Отзывы на произведения)."""
 
-    title = models.ForeignKey(
+    text = models.TextField(verbose_name='Текст отзыва')
+    pub_date = models.DateTimeField(verbose_name='Дата публикации',
+                                    auto_now_add=True)
+    title_id = models.ForeignKey(
         Title,
         verbose_name='Произведение',
         on_delete=models.CASCADE,
         related_name='reviews',
     )
+    author = models.ForeignKey(User, verbose_name='Автор',
+                               on_delete=models.CASCADE,
+                               related_name='reviews')
     score = models.PositiveSmallIntegerField(
         verbose_name='Рейтинг',
         validators=[
@@ -94,12 +103,18 @@ class Review(models.Model):
 class Comment(models.Model):
     """Модель Comment (Комментарии)."""
 
-    review = models.ForeignKey(
+    text = models.TextField(verbose_name='Текст комментария')
+    pub_date = models.DateTimeField(verbose_name='Дата публикации',
+                                    auto_now_add=True)
+    review_id = models.ForeignKey(
         Review,
         verbose_name='Отзыв',
         on_delete=models.CASCADE,
         related_name='comments',
     )
+    author = models.ForeignKey(User, verbose_name='Автор комментария',
+                               on_delete=models.CASCADE,
+                               related_name='comments')
 
     class Meta:
         verbose_name = 'Комментарий'
