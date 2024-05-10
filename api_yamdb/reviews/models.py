@@ -23,7 +23,7 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(verbose_name='Название', max_length=256)
-    year = models.IntegerField(verbose_name='Год создания',)
+    year = models.IntegerField(verbose_name='Год создания', )
     description = models.TextField(verbose_name='Описание', null=True)
     rating = models.IntegerField(verbose_name='Рэйтинг', default=0)
     category = models.ForeignKey(
@@ -31,8 +31,9 @@ class Title(models.Model):
         verbose_name='Категория',
         null=True,
         on_delete=models.SET_NULL,
-        related_name='categories',)
-    genre = models.ManyToManyField(Genre, verbose_name='Жанр', through='GenreTitle')
+        related_name='categories', )
+    genre = models.ManyToManyField(Genre, verbose_name='Жанр',
+                                   through='GenreTitle')
 
     class Meta:
         verbose_name = 'Произведение'
