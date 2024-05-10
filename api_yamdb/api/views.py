@@ -1,7 +1,6 @@
 import random
 
 from django.core.mail import send_mail
-from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.mixins import (
@@ -68,7 +67,7 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=False,
         methods=['GET', 'PUT', 'PATCH'],
         permission_classes=[IsAuthenticated],
-        url_path="me",
+        url_path='me',
     )
     def me(self, request):
         if request.method == 'GET':
@@ -96,23 +95,23 @@ def signup(request):
     serializer.is_valid(raise_exception=True)
     confirmation_code = random.randint(100_000, 999_999)
     send_mail(
-        subject="Ваш код подтверждения",
-        message=f"Ваш код подтверждения {str(confirmation_code)}",
+        subject='Ваш код подтверждения',
+        message=f'Ваш код подтверждения {str(confirmation_code)}',
         from_email='yamdb.ru',
         recipient_list=[request.data['email']],
         fail_silently=False,
     )
     try:
-        user, created = CustomUser.objects.get_or_create(
-            Q(username=request.data['username'])
-            | Q(email=request.data['email']))
+        user = CustomUser.objects.get(
+            username=request.data['username'],
+            email=request.data['email'])
     except CustomUser.DoesNotExist:
         user = None
     if user:
         user.confirmation_code = str(confirmation_code)
         user.save()
     else:
-        CustomUser.objects.get_or_create(
+        CustomUser.objects.create(
             username=request.data['username'],
             email=request.data['email'],
             confirmation_code=confirmation_code)
