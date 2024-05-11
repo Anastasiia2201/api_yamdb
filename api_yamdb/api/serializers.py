@@ -1,10 +1,11 @@
 import datetime as dt
 
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 
-from reviews.models import Title, Genre, Category
 from users.models import CustomUser
+from reviews.models import Category, Comment, Genre, Review, Title
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -130,3 +131,19 @@ class TokenSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Неверный код подтверждения')
         return attrs
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Review."""
+
+    class Meta:
+        model = Review
+        read_only_fields = ('title',)
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Comment."""
+
+    class Meta:
+        model = Comment
+        read_only_fields = ('review',)
