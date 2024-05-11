@@ -17,12 +17,10 @@ def import_titles(file_path):
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            Title.objects.get_or_create(
-                id=row['id'],
-                name=row['name'],
-                year=row['year'],
-                category=Category.objects.get(pk=row['category'])
-            )
+            Title.objects.get_or_create(id=row['id'], defaults={
+                'name': row['name'],
+                'year': row['year'],
+                'category': Category.objects.get(pk=row['category']), })
 
 
 def import_categories(file_path):
@@ -30,11 +28,9 @@ def import_categories(file_path):
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            Category.objects.get_or_create(
-                id=row['id'],
-                name=row['name'],
-                slug=row['slug'],
-            )
+            Category.objects.get_or_create(id=row['id'], defaults={
+                'name': row['name'],
+                'slug': row['slug'], })
 
 
 def import_genres(file_path):
@@ -42,11 +38,9 @@ def import_genres(file_path):
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            Genre.objects.get_or_create(
-                id=row['id'],
-                name=row['name'],
-                slug=row['slug'],
-            )
+            Genre.objects.get_or_create(id=row['id'], defaults={
+                'name': row['name'],
+                'slug': row['slug'], })
 
 
 def import_genre_title(file_path):
@@ -54,11 +48,9 @@ def import_genre_title(file_path):
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            GenreTitle.objects.get_or_create(
-                id=row['id'],
-                title_id=row['title_id'],
-                genre_id=row['genre_id'],
-            )
+            GenreTitle.objects.get_or_create(id=row['id'], defaults={
+                'title_id': row['title_id'],
+                'genre_id':row['genre_id'], })
 
 
 def import_users(file_path):
