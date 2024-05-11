@@ -148,7 +148,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         if request.method != "POST":
             return data
         title = get_object_or_404(
-            Title, pk=self.context["view"].kwargs.get("title_id")
+            Title, pk=self.context['view'].kwargs['title_id']
         )
         if title.reviews.filter(author=request.user).exists():
             raise ValidationError(
