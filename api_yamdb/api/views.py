@@ -22,6 +22,8 @@ from .serializers import (
     TitleSerializer,
     UserSerializer,
     CommonUserSerializer,
+    ReviewSerializer,
+    CommentSerializer,
     SignupSerializer,
     TokenSerializer
 )
