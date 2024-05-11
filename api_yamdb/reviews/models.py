@@ -50,17 +50,9 @@ class Title(models.Model):
         verbose_name='Категория',
         null=True,
         on_delete=models.SET_NULL,
-<<<<<<< HEAD
-        related_name='categories',)
-    genre = models.ManyToManyField(
-        Genre,
-        verbose_name='Жанр',
-        through='GenreTitle')
-=======
         related_name='categories', )
     genre = models.ManyToManyField(Genre, verbose_name='Жанр',
                                    through='GenreTitle')
->>>>>>> develop
 
     class Meta:
         verbose_name = 'Произведение'

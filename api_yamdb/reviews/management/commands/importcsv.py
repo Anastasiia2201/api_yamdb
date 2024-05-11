@@ -2,7 +2,14 @@ import csv
 
 from django.core.management.base import BaseCommand
 
-from reviews.models import Title, Category, Genre, GenreTitle
+from reviews.models import (
+    Title,
+    Category,
+    Genre,
+    GenreTitle,
+    User,
+    Comment,
+    Review)
 
 
 def import_titles(file_path):
@@ -50,6 +57,44 @@ def import_genre_title(file_path):
             )
 
 
+def import_users(file_path):
+    with open(file_path, 'r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            User.objects.get_or_create(
+                id=row['id'],
+                username=row['username'],
+                email=row['email'],
+                role=row['role'],
+                bio=row['bio'],
+                first_name=row['first_name'],
+                last_name=row['last_name'],
+            )
+
+
+def import_reviews(file_path):
+    with open(file_path, 'r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            Review.objects.get_or_create(id=row['id'], defaults={
+                'title_id': Title.objects.get(pk=row['title_id']),
+                'text': row['text'],
+                'author': User.objects.get(pk=row['author']),
+                'score': row['score'],
+                'pub_date': row['pub_date']}, )
+
+
+def import_comments(file_path):
+    with open(file_path, 'r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            Comment.objects.get_or_create(id=row['id'], defaults={
+                'review_id': Review.objects.get(pk=row['review_id']),
+                'text': row['text'],
+                'author': User.objects.get(pk=row['author']),
+                'pub_date': row['pub_date'], })
+
+
 class Command(BaseCommand):
     help = 'import CSV Data into Django Models'
 
@@ -58,3 +103,6 @@ class Command(BaseCommand):
         import_genres('static/data/genre.csv')
         import_titles('static/data/titles.csv')
         import_genre_title('static/data/genre_title.csv')
+        import_users('static/data/users.csv')
+        import_reviews('static/data/review.csv')
+        import_comments('static/data/comments.csv')
