@@ -18,12 +18,12 @@ from users.models import CustomUser
 from reviews.models import Category, Genre, Review, Title
 from .serializers import (
     CategorySerializer,
-    CommentSerializer,
     GenreSerializer,
     TitleSerializer,
     UserSerializer,
     CommonUserSerializer,
     ReviewSerializer,
+    CommentSerializer,
     SignupSerializer,
     TokenSerializer
 )
