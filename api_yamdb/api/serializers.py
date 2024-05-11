@@ -90,6 +90,30 @@ class SignupSerializer(serializers.ModelSerializer):
                 f'Имя {value} не может быть использовано')
         return value
 
+    def validate(self, attrs):
+        email = attrs.get('email')
+        username = attrs.get('username')
+        try:
+            user_with_email = CustomUser.objects.get(email=email)
+            # Если пользователь с таким email существует, проверяем,
+            # совпадает ли username
+            if user_with_email.username != username:
+                raise serializers.ValidationError(
+                    f'Username {username} не соответствует указанному email')
+        except CustomUser.DoesNotExist:
+            pass
+
+        try:
+            user_with_username = CustomUser.objects.get(username=username)
+            # Если пользователь с таким username существует, проверяем,
+            # совпадает ли email
+            if user_with_username.email != email:
+                raise serializers.ValidationError(
+                    f'Email {email} не соответствует указанному username')
+        except CustomUser.DoesNotExist:
+            pass
+        return attrs
+
 
 class TokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True)
