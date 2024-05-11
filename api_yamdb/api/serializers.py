@@ -3,6 +3,7 @@ import datetime as dt
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
+from rest_framework.relations import SlugRelatedField
 
 from users.models import CustomUser
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -10,6 +11,7 @@ from reviews.models import Category, Comment, Genre, Review, Title
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Genre."""
+    
     class Meta:
         model = Genre
         lookup_field = 'slug'
@@ -18,6 +20,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Category."""
+    
     class Meta:
         model = Category
         lookup_field = 'slug'
@@ -75,6 +78,7 @@ class CommonUserSerializer(UserSerializer):
 
 class SignupSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации пользователей."""
+    
     username = serializers.CharField(required=True, max_length=150)
     email = serializers.EmailField(required=True, max_length=254)
 
@@ -136,14 +140,22 @@ class TokenSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review."""
 
+    author = SlugRelatedField(slug_field='username', read_only=True,
+                              default=serializers.CurrentUserDefault())
+
     class Meta:
         model = Review
         read_only_fields = ('title',)
+        fields = '__all__'
 
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Comment."""
 
+    author = SlugRelatedField(slug_field='username', read_only=True,
+                              default=serializers.CurrentUserDefault())
+
     class Meta:
         model = Comment
         read_only_fields = ('review',)
+        fields = '__all__'
