@@ -13,6 +13,7 @@ from reviews.models import (
 
 
 def import_titles(file_path):
+    """Импорт данных из cvs файла в модель Title."""
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
@@ -25,6 +26,7 @@ def import_titles(file_path):
 
 
 def import_categories(file_path):
+    """Импорт данных из cvs файла в модель Category."""
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
@@ -36,6 +38,7 @@ def import_categories(file_path):
 
 
 def import_genres(file_path):
+    """Импорт данных из cvs файла в модель Genre."""
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
@@ -47,6 +50,7 @@ def import_genres(file_path):
 
 
 def import_genre_title(file_path):
+    """Импорт данных из cvs файла в модель Genre_Title."""
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
@@ -58,6 +62,7 @@ def import_genre_title(file_path):
 
 
 def import_users(file_path):
+    """Импорт данных из cvs файла в модель User."""
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
@@ -73,6 +78,7 @@ def import_users(file_path):
 
 
 def import_reviews(file_path):
+    """Импорт данных из cvs файла в модель Review."""
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
@@ -85,6 +91,7 @@ def import_reviews(file_path):
 
 
 def import_comments(file_path):
+    """Импорт данных из cvs файла в модель Comment."""
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
