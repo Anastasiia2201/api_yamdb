@@ -1,8 +1,7 @@
-from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-User = get_user_model()
+from users.models import CustomUser
 
 RATING_MIN = 1
 RATING_MAX = 10
@@ -44,7 +43,6 @@ class Title(models.Model):
     name = models.CharField(verbose_name='Название', max_length=256)
     year = models.IntegerField(verbose_name='Год создания', )
     description = models.TextField(verbose_name='Описание', null=True)
-    rating = models.IntegerField(verbose_name='Рейтинг', default=0)
     category = models.ForeignKey(
         Category,
         verbose_name='Категория',
@@ -84,7 +82,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews',
     )
-    author = models.ForeignKey(User, verbose_name='Автор',
+    author = models.ForeignKey(CustomUser, verbose_name='Автор',
                                on_delete=models.CASCADE,
                                related_name='reviews')
     score = models.PositiveSmallIntegerField(
@@ -127,7 +125,7 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments',
     )
-    author = models.ForeignKey(User, verbose_name='Автор комментария',
+    author = models.ForeignKey(CustomUser, verbose_name='Автор комментария',
                                on_delete=models.CASCADE,
                                related_name='comments')
 
