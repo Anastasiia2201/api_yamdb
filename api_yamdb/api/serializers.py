@@ -8,10 +8,13 @@ from rest_framework.relations import SlugRelatedField
 from users.models import CustomUser
 from reviews.models import Category, Comment, Genre, Review, Title
 
+RATING_MIN = 1
+RATING_MAX = 10
+
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Genre."""
-    
+
     class Meta:
         model = Genre
         lookup_field = 'slug'
@@ -39,6 +42,8 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         required=False,
         queryset=Genre.objects.all())
+    rating = serializers.IntegerField(
+        max_value=RATING_MAX, min_value=RATING_MIN)
 
     class Meta:
         model = Title
@@ -78,7 +83,7 @@ class CommonUserSerializer(UserSerializer):
 
 class SignupSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации пользователей."""
-    
+
     username = serializers.CharField(required=True, max_length=150)
     email = serializers.EmailField(required=True, max_length=254)
 
