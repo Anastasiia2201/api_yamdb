@@ -1,5 +1,6 @@
 import random
 
+from django.db.models import Avg
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, status
@@ -32,10 +33,13 @@ from .serializers import (
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
 
-    queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+
+    def get_queryset(self):
+        return Title.objects.annotate(
+            rating=Avg('reviews__score')).order_by('id')
 
 
 class CategoryViewSet(
