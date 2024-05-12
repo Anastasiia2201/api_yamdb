@@ -161,6 +161,19 @@ class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True,
                               default=serializers.CurrentUserDefault())
 
+    def validate(self, data):
+        request = self.context.get("request")
+        if request.method != "POST":
+            return data
+        title = get_object_or_404(
+            Title, pk=self.context['view'].kwargs['title_id']
+        )
+        if title.reviews.filter(author=request.user).exists():
+            raise ValidationError(
+                "Пользователь может оставить только один отзыв!"
+            )
+        return data
+
     class Meta:
         model = Review
         read_only_fields = ('title',)
