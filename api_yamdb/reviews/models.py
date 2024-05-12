@@ -77,7 +77,7 @@ class Review(models.Model):
     text = models.TextField(verbose_name='Текст отзыва')
     pub_date = models.DateTimeField(verbose_name='Дата публикации',
                                     auto_now_add=True)
-    title_id = models.ForeignKey(
+    title = models.ForeignKey(
         Title,
         verbose_name='Произведение',
         on_delete=models.CASCADE,
@@ -120,7 +120,7 @@ class Comment(models.Model):
     text = models.TextField(verbose_name='Текст комментария')
     pub_date = models.DateTimeField(verbose_name='Дата публикации',
                                     auto_now_add=True)
-    review_id = models.ForeignKey(
+    review = models.ForeignKey(
         Review,
         verbose_name='Отзыв',
         on_delete=models.CASCADE,
