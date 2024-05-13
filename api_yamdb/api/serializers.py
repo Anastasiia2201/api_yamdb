@@ -1,5 +1,4 @@
 import datetime as dt
-import re
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -9,13 +8,15 @@ from rest_framework.relations import SlugRelatedField
 from users.models import CustomUser
 from reviews.models import Category, Comment, Genre, Review, Title
 
+RATING_MIN = 1
+RATING_MAX = 10
+
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Genre."""
-    
+
     class Meta:
         model = Genre
-        lookup_field = 'slug'
         fields = ('name', 'slug')
 
 
@@ -24,7 +25,6 @@ class CategorySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Category
-        lookup_field = 'slug'
         fields = ('name', 'slug')
 
 
@@ -66,9 +66,6 @@ class UserSerializer(serializers.ModelSerializer):
         if value.lower() == 'me':
             raise serializers.ValidationError(
                 f'Имя {value} не может быть использовано')
-        if not re.match(r"^[\w.@+-]+\Z", value):
-            raise serializers.ValidationError(
-                f'Имя {value} не может содержать спецсимволы')
         return value
 
 
@@ -79,21 +76,10 @@ class CommonUserSerializer(UserSerializer):
                   'first_name', 'last_name', 'bio')
         read_only_fields = ('role',)
 
-    @staticmethod
-    def validate_username(value):
-        """Проверка имени пользователя."""
-        if value.lower() == 'me':
-            raise serializers.ValidationError(
-                f'Имя {value} не может быть использовано')
-        if not re.match(r"^[\w.@+-]+\Z", value):
-            raise serializers.ValidationError(
-                f'Имя {value} не может содержать спецсимволы')
-        return value
-
 
 class SignupSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации пользователей."""
-    
+
     username = serializers.CharField(required=True, max_length=150)
     email = serializers.EmailField(required=True, max_length=254)
 
@@ -108,9 +94,6 @@ class SignupSerializer(serializers.ModelSerializer):
         if value.lower() == 'me':
             raise serializers.ValidationError(
                 f'Имя {value} не может быть использовано')
-        if not re.match(r"^[\w.@+-]+\Z", value):
-            raise serializers.ValidationError(
-                f'Имя {value} не может содержать спецсимволы')
         return value
 
     def validate(self, attrs):

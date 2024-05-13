@@ -1,7 +1,9 @@
 import random
-
+from .permissions import IsAdmin, IsAdminOrSafeMethod, IsAuthorOrAdmin
 from django.db.models import Avg
 from django.core.mail import send_mail
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.viewsets import GenericViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view, permission_classes, action
@@ -26,38 +28,33 @@ from .serializers import (
     ReviewSerializer,
     CommentSerializer,
     SignupSerializer,
-    TokenSerializer
+    TokenSerializer,
 )
 
+class CreateDestroyListViewSet(
+    CreateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet
+):
+    pass
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
-
+    queryset = Title.objects.all()
+    http_method_names = ["get", "post", "patch", "delete"]
+    permission_classes = (IsAdminOrSafeMethod,)
     serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
 
-    def get_queryset(self):
-        titles = Title.objects.all()
-        for title in titles:
-            title.update_ratings()
-            title.save()
-        return Title.objects.all()
 
-
-class CategoryViewSet(
-    CreateModelMixin,
-    DestroyModelMixin,
-    ListModelMixin,
-    viewsets.GenericViewSet
-):
+class CategoryViewSet(CreateDestroyListViewSet):
     """Вьюсет для модели Category."""
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = [SearchFilter]
     search_fields = ['name']
+    permission_classes = (IsAdminOrSafeMethod,)
 
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -67,6 +64,8 @@ class GenreViewSet(viewsets.ModelViewSet):
     serializer_class = GenreSerializer
     filter_backends = [SearchFilter]
     search_fields = ['name']
+    filter_backends = [SearchFilter]
+    search_fields = ['name']
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -74,8 +73,10 @@ class UserViewSet(viewsets.ModelViewSet):
 
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdmin]
+    pagination_class = PageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
+    http_method_names = ["get", "post", "patch", "delete"]
     search_fields = ['username']
     lookup_field = 'username'
 
@@ -154,7 +155,8 @@ def confirm_signup(request):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Review."""
-
+    permission_classes = [IsAuthorOrAdmin]
+    http_method_names = ["get", "post", "patch", "delete"]
     serializer_class = ReviewSerializer
 
     def get_title(self):
@@ -165,13 +167,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
+        title = Title.objects.get(pk=self.kwargs['title_id'])
+        title.update_ratings()
+        title.save()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Comment."""
-
+    http_method_names = ["get", "post", "patch", "delete"]
     serializer_class = CommentSerializer
-
+    permission_classes = [IsAuthorOrAdmin]
     def get_review(self):
         return get_object_or_404(Review, pk=self.kwargs['review_id'])
 
