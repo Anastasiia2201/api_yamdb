@@ -9,13 +9,15 @@ from rest_framework.relations import SlugRelatedField
 from users.models import CustomUser
 from reviews.models import Category, Comment, Genre, Review, Title
 
+RATING_MIN = 1
+RATING_MAX = 10
+
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Genre."""
-    
+
     class Meta:
         model = Genre
-        lookup_field = 'slug'
         fields = ('name', 'slug')
 
 
@@ -24,7 +26,6 @@ class CategorySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Category
-        lookup_field = 'slug'
         fields = ('name', 'slug')
 
 
@@ -40,6 +41,8 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         required=False,
         queryset=Genre.objects.all())
+    rating = serializers.IntegerField(
+        max_value=RATING_MAX, min_value=RATING_MIN)
 
     class Meta:
         model = Title
@@ -93,7 +96,7 @@ class CommonUserSerializer(UserSerializer):
 
 class SignupSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации пользователей."""
-    
+
     username = serializers.CharField(required=True, max_length=150)
     email = serializers.EmailField(required=True, max_length=254)
 
@@ -160,6 +163,19 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     author = SlugRelatedField(slug_field='username', read_only=True,
                               default=serializers.CurrentUserDefault())
+
+    def validate(self, data):
+        request = self.context.get("request")
+        if request.method != "POST":
+            return data
+        title = get_object_or_404(
+            Title, pk=self.context['view'].kwargs['title_id']
+        )
+        if title.reviews.filter(author=request.user).exists():
+            raise ValidationError(
+                "Пользователь может оставить только один отзыв!"
+            )
+        return data
 
     class Meta:
         model = Review

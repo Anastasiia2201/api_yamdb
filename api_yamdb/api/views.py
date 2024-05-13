@@ -1,5 +1,6 @@
 import random
 
+from django.db.models import Avg
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, status
@@ -41,11 +42,15 @@ class CreateDestroyListViewSet(
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
 
-    queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name']
     permission_classes = (IsAdminOrSafeMethod,)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+
+    def get_queryset(self):
+        return Title.objects.annotate(
+            rating=Avg('reviews__score')).order_by('id')
 
 
 class CategoryViewSet(CreateDestroyListViewSet):
@@ -53,10 +58,9 @@ class CategoryViewSet(CreateDestroyListViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    lookup_field = 'slug'
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = [SearchFilter]
+    search_fields = ['name']
     permission_classes = (IsAdminOrSafeMethod,)
-    filterset_fields = ('name',)
 
 
 class GenreViewSet(CreateDestroyListViewSet):
@@ -64,10 +68,9 @@ class GenreViewSet(CreateDestroyListViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    lookup_field = 'slug'
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = [SearchFilter]
+    search_fields = ['name']
     permission_classes = (IsAdminOrSafeMethod,)
-    filterset_fields = ('name',)
 
 
 class UserViewSet(viewsets.ModelViewSet):

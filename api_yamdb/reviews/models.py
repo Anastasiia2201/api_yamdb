@@ -19,6 +19,9 @@ class Category(models.Model):
         verbose_name_plural = 'Категории'
         default_related_name = 'categories'
 
+    def __str__(self):
+        return self.name
+
 
 class Genre(models.Model):
     """Модель Genre (Жанр)."""
@@ -31,6 +34,9 @@ class Genre(models.Model):
         verbose_name_plural = 'Жанры'
         default_related_name = 'genres'
 
+    def __str__(self):
+        return self.name
+
 
 class Title(models.Model):
     """Модель Title (Произведение)."""
@@ -38,7 +44,6 @@ class Title(models.Model):
     name = models.CharField(verbose_name='Название', max_length=256)
     year = models.IntegerField(verbose_name='Год создания', )
     description = models.TextField(verbose_name='Описание', null=True)
-    rating = models.IntegerField(verbose_name='Рейтинг', default=0)
     category = models.ForeignKey(
         Category,
         verbose_name='Категория',
@@ -72,7 +77,7 @@ class Review(models.Model):
     text = models.TextField(verbose_name='Текст отзыва')
     pub_date = models.DateTimeField(verbose_name='Дата публикации',
                                     auto_now_add=True)
-    title_id = models.ForeignKey(
+    title = models.ForeignKey(
         Title,
         verbose_name='Произведение',
         on_delete=models.CASCADE,
@@ -115,7 +120,7 @@ class Comment(models.Model):
     text = models.TextField(verbose_name='Текст комментария')
     pub_date = models.DateTimeField(verbose_name='Дата публикации',
                                     auto_now_add=True)
-    review_id = models.ForeignKey(
+    review = models.ForeignKey(
         Review,
         verbose_name='Отзыв',
         on_delete=models.CASCADE,
