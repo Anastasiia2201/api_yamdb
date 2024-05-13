@@ -19,6 +19,7 @@ class Category(models.Model):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
         default_related_name = 'categories'
+        ordering = ('slug',)
 
     def __str__(self):
         return self.name
@@ -34,6 +35,8 @@ class Genre(models.Model):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
         default_related_name = 'genres'
+        ordering = ('slug',)
+
 
     def __str__(self):
         return self.name
@@ -53,20 +56,15 @@ class Title(models.Model):
         related_name='categories', )
     genre = models.ManyToManyField(Genre, verbose_name='Жанр',
                                    through='GenreTitle')
-<<<<<<< HEAD
-    rating = models.IntegerField(verbose_name='Год создания', default=1)
-    def update_ratings(self):
-        self.rating = self.reviews.aggregate(rating=Avg('score'))['rating']
-=======
-    rating = models.IntegerField(verbose_name='Рейтинг', default=0)
+    rating = models.IntegerField(verbose_name='Рейтинг', blank=True, null=True, default=None)
 
     def update_ratings(self):
         self.rating = self.reviews.aggregate(rating=Avg('score'))['rating']
 
->>>>>>> 44edc7fef693df536cf2b96fd4f887ba4045bda6
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
+        ordering = ('id',)
 
     def __str__(self):
         return self.name

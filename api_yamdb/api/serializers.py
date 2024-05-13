@@ -1,4 +1,5 @@
 import datetime as dt
+import re
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -6,7 +7,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
 
 from users.models import CustomUser
-from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.models import Category, Comment, Genre, Review, Title, GenreTitle
 
 RATING_MIN = 1
 RATING_MAX = 10
@@ -28,7 +29,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title."""
 
     category = serializers.SlugRelatedField(
@@ -40,12 +41,10 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         required=False,
         queryset=Genre.objects.all())
-    rating = serializers.IntegerField(
-        max_value=RATING_MAX, min_value=RATING_MIN, required=False)
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'rating',
+        fields = ('id', 'name', 'year',
                   'description', 'genre', 'category')
         read_only_fields = ('rating',)
 
@@ -55,6 +54,26 @@ class TitleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Проверьте год выпуска!')
         return value
 
+
+class TitleDisplaySerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Title."""
+
+    category = CategorySerializer()
+    rating = serializers.IntegerField(
+        max_value=RATING_MAX, min_value=RATING_MIN, required=False)
+    genre = GenreSerializer(many=True, required=False)
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'genre', 'category')
+        read_only_fields = ('rating',)
+    def create(self, validated_data):
+        genres = validated_data.pop('genre')
+        title = Title.objects.create(**validated_data)
+        for genre in genres:
+            GenreTitle.objects.create(title=title, genre=Genre.objects.get(**genre))
+        return title 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -68,6 +87,9 @@ class UserSerializer(serializers.ModelSerializer):
         if value.lower() == 'me':
             raise serializers.ValidationError(
                 f'Имя {value} не может быть использовано')
+        if not re.match(r"^[\w.@+-]+\Z", value):
+            raise serializers.ValidationError(
+                f'Имя {value} не может содержать спецсимволы')
         return value
 
 
@@ -77,6 +99,17 @@ class CommonUserSerializer(UserSerializer):
         fields = ('username', 'email',
                   'first_name', 'last_name', 'bio')
         read_only_fields = ('role',)
+
+    @staticmethod
+    def validate_username(value):
+        """Проверка имени пользователя."""
+        if value.lower() == 'me':
+            raise serializers.ValidationError(
+                f'Имя {value} не может быть использовано')
+        if not re.match(r"^[\w.@+-]+\Z", value):
+            raise serializers.ValidationError(
+                f'Имя {value} не может содержать спецсимволы')
+        return value
 
 
 class SignupSerializer(serializers.ModelSerializer):
@@ -96,6 +129,9 @@ class SignupSerializer(serializers.ModelSerializer):
         if value.lower() == 'me':
             raise serializers.ValidationError(
                 f'Имя {value} не может быть использовано')
+        if not re.match(r"^[\w.@+-]+\Z", value):
+            raise serializers.ValidationError(
+                f'Имя {value} не может содержать спецсимволы')
         return value
 
     def validate(self, attrs):
