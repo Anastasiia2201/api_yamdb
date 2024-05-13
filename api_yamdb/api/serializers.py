@@ -42,7 +42,7 @@ class TitleSerializer(serializers.ModelSerializer):
         required=False,
         queryset=Genre.objects.all())
     rating = serializers.IntegerField(
-        max_value=RATING_MAX, min_value=RATING_MIN)
+        max_value=RATING_MAX, min_value=RATING_MIN, required=False)
 
     class Meta:
         model = Title

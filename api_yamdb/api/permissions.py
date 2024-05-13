@@ -5,7 +5,6 @@ class IsAuthorOrAdmin(BasePermission):
     def has_permission(self, request, view):
         return (
             request.method in SAFE_METHODS
-            and request.user.is_anonymous
             or request.user.is_authenticated
         )
 
@@ -15,6 +14,7 @@ class IsAuthorOrAdmin(BasePermission):
                 obj.author == request.user
                 or request.user.is_moderator
                 or request.user.is_admin
+                or request.user.is_superuser
             )
         return True
 
@@ -36,6 +36,5 @@ class IsAdmin(BasePermission):
         if request.user.is_authenticated:
             return (
                     request.user.is_admin
-                    or request.user.is_moderator
                     or request.user.is_superuser
             )

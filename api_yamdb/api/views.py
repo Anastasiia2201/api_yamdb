@@ -1,6 +1,5 @@
 import random
 
-from django.db.models import Avg
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, status
@@ -47,10 +46,10 @@ class TitleViewSet(viewsets.ModelViewSet):
     search_fields = ['name']
     permission_classes = (IsAdminOrSafeMethod,)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    http_method_names = ["get", "post", "patch", "delete"]
 
     def get_queryset(self):
-        return Title.objects.annotate(
-            rating=Avg('reviews__score')).order_by('id')
+        return Title.objects.all()
 
 
 class CategoryViewSet(CreateDestroyListViewSet):
@@ -163,6 +162,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthorOrAdmin]
+    http_method_names = ["get", "post", "patch", "delete"]
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs['title_id'])
@@ -172,6 +172,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
+        title = Title.objects.get(pk=self.kwargs['title_id'])
+        title.update_ratings()
+        title.save()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -179,6 +182,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     serializer_class = CommentSerializer
     permission_classes = [IsAuthorOrAdmin]
+    http_method_names = ["get", "post", "patch", "delete"]
 
     def get_review(self):
         return get_object_or_404(Review, pk=self.kwargs['review_id'])
