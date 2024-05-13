@@ -1,5 +1,5 @@
 import random
-from .permissions import IsAdmin, IsAdminOrSafeMethod, IsAuthorOrAdmin
+
 from django.db.models import Avg
 from django.core.mail import send_mail
 from rest_framework.pagination import PageNumberPagination
@@ -38,13 +38,21 @@ class CreateDestroyListViewSet(
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
-    queryset = Title.objects.all()
-    http_method_names = ["get", "post", "patch", "delete"]
-    permission_classes = (IsAdminOrSafeMethod,)
+
     serializer_class = TitleSerializer
+<<<<<<<<< Temporary merge branch 1
+    filter_backends = (DjangoFilterBackend,)
+    permission_classes = (IsAdminOrSafeMethod,)
+=========
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
+>>>>>>>>> Temporary merge branch 2
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    http_method_names = ["get", "post", "patch", "delete"]
+
+    def get_queryset(self):
+        return Title.objects.annotate(
+            rating=Avg('reviews__score')).order_by('id')
 
 
 class CategoryViewSet(CreateDestroyListViewSet):
@@ -62,10 +70,15 @@ class GenreViewSet(viewsets.ModelViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+<<<<<<<<< Temporary merge branch 1
+    lookup_field = 'slug'
+    filter_backends = (DjangoFilterBackend,)
+    permission_classes = (IsAdminOrSafeMethod,)
+    filterset_fields = ('name',)
+=========
     filter_backends = [SearchFilter]
     search_fields = ['name']
-    filter_backends = [SearchFilter]
-    search_fields = ['name']
+>>>>>>>>> Temporary merge branch 2
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -156,8 +169,6 @@ def confirm_signup(request):
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Review."""
     permission_classes = [IsAuthorOrAdmin]
-    http_method_names = ["get", "post", "patch", "delete"]
-    serializer_class = ReviewSerializer
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs['title_id'])
@@ -177,6 +188,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     serializer_class = CommentSerializer
     permission_classes = [IsAuthorOrAdmin]
+
     def get_review(self):
         return get_object_or_404(Review, pk=self.kwargs['review_id'])
 

@@ -53,9 +53,17 @@ class Title(models.Model):
         related_name='categories', )
     genre = models.ManyToManyField(Genre, verbose_name='Жанр',
                                    through='GenreTitle')
+<<<<<<< HEAD
     rating = models.IntegerField(verbose_name='Год создания', default=1)
     def update_ratings(self):
         self.rating = self.reviews.aggregate(rating=Avg('score'))['rating']
+=======
+    rating = models.IntegerField(verbose_name='Рейтинг', default=0)
+
+    def update_ratings(self):
+        self.rating = self.reviews.aggregate(rating=Avg('score'))['rating']
+
+>>>>>>> 44edc7fef693df536cf2b96fd4f887ba4045bda6
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'

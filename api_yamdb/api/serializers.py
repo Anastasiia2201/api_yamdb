@@ -40,6 +40,8 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         required=False,
         queryset=Genre.objects.all())
+    rating = serializers.IntegerField(
+        max_value=RATING_MAX, min_value=RATING_MIN, required=False)
 
     class Meta:
         model = Title
