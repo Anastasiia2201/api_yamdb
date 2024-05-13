@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Avg
 
 User = get_user_model()
 
@@ -47,7 +48,11 @@ class Title(models.Model):
         related_name='categories', )
     genre = models.ManyToManyField(Genre, verbose_name='Жанр',
                                    through='GenreTitle')
-
+ 
+    def update_ratings(self):
+        self.rating = self.reviews.aggregate(rating=Avg('score'))['rating']
+    
+    
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
@@ -72,7 +77,7 @@ class Review(models.Model):
     text = models.TextField(verbose_name='Текст отзыва')
     pub_date = models.DateTimeField(verbose_name='Дата публикации',
                                     auto_now_add=True)
-    title_id = models.ForeignKey(
+    title = models.ForeignKey(
         Title,
         verbose_name='Произведение',
         on_delete=models.CASCADE,
@@ -115,7 +120,7 @@ class Comment(models.Model):
     text = models.TextField(verbose_name='Текст комментария')
     pub_date = models.DateTimeField(verbose_name='Дата публикации',
                                     auto_now_add=True)
-    review_id = models.ForeignKey(
+    review = models.ForeignKey(
         Review,
         verbose_name='Отзыв',
         on_delete=models.CASCADE,

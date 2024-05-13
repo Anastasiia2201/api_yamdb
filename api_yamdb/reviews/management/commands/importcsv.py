@@ -75,11 +75,14 @@ def import_reviews(file_path):
         reader = csv.DictReader(file)
         for row in reader:
             Review.objects.get_or_create(id=row['id'], defaults={
-                'title_id': Title.objects.get(pk=row['title_id']),
+                'title_id': row['title_id'],
                 'text': row['text'],
                 'author': User.objects.get(pk=row['author']),
                 'score': row['score'],
                 'pub_date': row['pub_date']}, )
+            title = Title.objects.get(pk=row['title_id'])
+            title.update_ratings()
+            title.save()
 
 
 def import_comments(file_path):
@@ -88,7 +91,7 @@ def import_comments(file_path):
         reader = csv.DictReader(file)
         for row in reader:
             Comment.objects.get_or_create(id=row['id'], defaults={
-                'review_id': Review.objects.get(pk=row['review_id']),
+                'review_id': row['review_id'],
                 'text': row['text'],
                 'author': User.objects.get(pk=row['author']),
                 'pub_date': row['pub_date'], })
