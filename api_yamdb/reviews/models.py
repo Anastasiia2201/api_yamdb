@@ -52,7 +52,8 @@ class Title(models.Model):
         related_name='categories', )
     genre = models.ManyToManyField(Genre, verbose_name='Жанр',
                                    through='GenreTitle')
-
+    rating = models.IntegerField(verbose_name='Год создания', default=1)
+    
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
