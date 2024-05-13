@@ -50,7 +50,7 @@ def import_genre_title(file_path):
         for row in reader:
             GenreTitle.objects.get_or_create(id=row['id'], defaults={
                 'title_id': row['title_id'],
-                'genre_id':row['genre_id'], })
+                'genre_id': row['genre_id'], })
 
 
 def import_users(file_path):
@@ -58,15 +58,14 @@ def import_users(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            User.objects.get_or_create(
-                id=row['id'],
-                username=row['username'],
-                email=row['email'],
-                role=row['role'],
-                bio=row['bio'],
-                first_name=row['first_name'],
-                last_name=row['last_name'],
-            )
+            User.objects.get_or_create(id=row['id'], defaults={
+                'username': row['username'],
+                'email': row['email'],
+                'role': row['role'],
+                'bio': row['bio'],
+                'first_name': row['first_name'],
+                'last_name': row['last_name'],
+            })
 
 
 def import_reviews(file_path):
@@ -75,7 +74,7 @@ def import_reviews(file_path):
         reader = csv.DictReader(file)
         for row in reader:
             Review.objects.get_or_create(id=row['id'], defaults={
-                'title_id': Title.objects.get(pk=row['title_id']),
+                'title_id': row['title_id'],
                 'text': row['text'],
                 'author': User.objects.get(pk=row['author']),
                 'score': row['score'],
@@ -88,7 +87,7 @@ def import_comments(file_path):
         reader = csv.DictReader(file)
         for row in reader:
             Comment.objects.get_or_create(id=row['id'], defaults={
-                'review_id': Review.objects.get(pk=row['review_id']),
+                'review_id': row['review_id'],
                 'text': row['text'],
                 'author': User.objects.get(pk=row['author']),
                 'pub_date': row['pub_date'], })
@@ -105,3 +104,4 @@ class Command(BaseCommand):
         import_users('static/data/users.csv')
         import_reviews('static/data/review.csv')
         import_comments('static/data/comments.csv')
+        self.stdout.write(self.style.SUCCESS('Данные добавлены'))

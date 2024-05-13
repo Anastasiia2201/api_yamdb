@@ -34,7 +34,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
 
     serializer_class = TitleSerializer
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name']
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
 
     def get_queryset(self):
@@ -52,9 +53,8 @@ class CategoryViewSet(
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    lookup_field = 'slug'
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name',)
+    filter_backends = [SearchFilter]
+    search_fields = ['name']
 
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -62,9 +62,8 @@ class GenreViewSet(viewsets.ModelViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    lookup_field = 'slug'
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name',)
+    filter_backends = [SearchFilter]
+    search_fields = ['name']
 
 
 class UserViewSet(viewsets.ModelViewSet):
