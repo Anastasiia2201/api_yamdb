@@ -17,12 +17,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .permissions import IsAdmin, IsAdminOrSafeMethod, IsAuthorOrAdmin
+from .filters import TitlesFilter
 from users.models import CustomUser
 from reviews.models import Category, Genre, Review, Title
 from .serializers import (
     CategorySerializer,
     GenreSerializer,
-    TitleCreateSerializer,
+    TitleInputSerializer,
     TitleDisplaySerializer,
     UserSerializer,
     CommonUserSerializer,
@@ -45,26 +46,42 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleDisplaySerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = TitlesFilter
     search_fields = ['name']
     permission_classes = (IsAdminOrSafeMethod,)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
     http_method_names = ["get", "post", "patch", "delete"]
 
     def perform_create(self, serializer):
         return serializer.save()
 
     def create(self, request, *args, **kwargs):
-        serializer = TitleCreateSerializer(data=request.data)
+        serializer = TitleInputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = self.perform_create(serializer)
         instance_serializer = TitleDisplaySerializer(instance)
-        return Response(instance_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            instance_serializer.data,
+            status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.queryset.get(pk=kwargs.get('pk'))
+        serializer = TitleInputSerializer(
+            instance,
+            data=request.data,
+            partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        instance_serializer = TitleDisplaySerializer(instance)
+        return Response(
+            instance_serializer.data,
+            status=status.HTTP_200_OK)
 
 
 class CategoryViewSet(CreateDestroyListViewSet):
     """Вьюсет для модели Category."""
 
     queryset = Category.objects.all()
+    lookup_field = 'slug'
     serializer_class = CategorySerializer
     filter_backends = [SearchFilter]
     search_fields = ['name']
@@ -75,6 +92,7 @@ class GenreViewSet(CreateDestroyListViewSet):
     """Вьюсет для модели Genre."""
 
     queryset = Genre.objects.all()
+    lookup_field = 'slug'
     serializer_class = GenreSerializer
     filter_backends = [SearchFilter]
     search_fields = ['name']
@@ -82,7 +100,7 @@ class GenreViewSet(CreateDestroyListViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """CRUD для пользователей"""
+    """CRUD для пользователей."""
 
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
@@ -118,6 +136,7 @@ class UserViewSet(viewsets.ModelViewSet):
 def signup(request):
     """
     Создание пользователя и отправление код подтверждения на email.
+
     Если пользователь уже зарегистрирован, то отправляется только
     код подтверждения.
     """
@@ -154,7 +173,7 @@ def signup(request):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def confirm_signup(request):
-    """Подтверждение e-mail пользователя по коду и создание токена"""
+    """Подтверждение e-mail пользователя по коду и создание токена."""
     serializer = TokenSerializer(data=request.data)
     if not serializer.is_valid(raise_exception=True):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

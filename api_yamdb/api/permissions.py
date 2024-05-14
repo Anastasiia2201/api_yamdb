@@ -22,8 +22,7 @@ class IsAuthorOrAdmin(BasePermission):
 class IsAdminOrSafeMethod(BasePermission):
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS or (
-                request.user.is_authenticated and request.user.is_admin
-        )
+            request.user.is_authenticated and request.user.is_admin)
 
 
 class IsAdmin(BasePermission):
@@ -35,6 +34,5 @@ class IsAdmin(BasePermission):
 
         if request.user.is_authenticated:
             return (
-                    request.user.is_admin
-                    or request.user.is_superuser
-            )
+                request.user.is_admin
+                or request.user.is_superuser)

@@ -7,7 +7,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
 
 from users.models import CustomUser
-from reviews.models import Category, Comment, Genre, Review, Title, GenreTitle
+from reviews.models import Category, Comment, Genre, Review, Title
 
 RATING_MIN = 1
 RATING_MAX = 10
@@ -23,13 +23,13 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Category."""
-    
+
     class Meta:
         model = Category
         fields = ('name', 'slug')
 
 
-class TitleCreateSerializer(serializers.ModelSerializer):
+class TitleInputSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title."""
 
     category = serializers.SlugRelatedField(
@@ -68,12 +68,7 @@ class TitleDisplaySerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category')
         read_only_fields = ('rating',)
-    def create(self, validated_data):
-        genres = validated_data.pop('genre')
-        title = Title.objects.create(**validated_data)
-        for genre in genres:
-            GenreTitle.objects.create(title=title, genre=Genre.objects.get(**genre))
-        return title 
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

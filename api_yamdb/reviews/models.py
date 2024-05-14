@@ -37,7 +37,6 @@ class Genre(models.Model):
         default_related_name = 'genres'
         ordering = ('slug',)
 
-
     def __str__(self):
         return self.name
 
@@ -56,7 +55,11 @@ class Title(models.Model):
         related_name='categories', )
     genre = models.ManyToManyField(Genre, verbose_name='Жанр',
                                    through='GenreTitle')
-    rating = models.IntegerField(verbose_name='Рейтинг', blank=True, null=True, default=None)
+    rating = models.IntegerField(
+        verbose_name='Рейтинг',
+        blank=True,
+        null=True,
+        default=None)
 
     def update_ratings(self):
         self.rating = self.reviews.aggregate(rating=Avg('score'))['rating']
