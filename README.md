@@ -35,11 +35,11 @@
     source venv/scripts/activate 
   ```
 
+ Установить зависимости из файла requirements.txt:
+
  ```
  python3 -m pip install --upgrade pip
  ```
-
- Установить зависимости из файла requirements.txt:
 
  ```
  pip install -r requirements.txt 
@@ -80,6 +80,6 @@
 
  Чтобы добавить данные в БД из csv файлов, выполните:
 
- ''' 
+ ```
  python3 manage.py importcsv
- '''
+ ```
