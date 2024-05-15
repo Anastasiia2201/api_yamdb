@@ -6,8 +6,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
 
-from users.models import CustomUser
 from reviews.models import Category, Comment, Genre, Review, Title
+from users.models import CustomUser
 
 RATING_MIN = 1
 RATING_MAX = 10
@@ -37,9 +37,9 @@ class TitleInputSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all())
 
     genre = serializers.SlugRelatedField(
+        required=True,
         many=True,
         slug_field='slug',
-        required=False,
         queryset=Genre.objects.all())
 
     class Meta:
@@ -54,6 +54,11 @@ class TitleInputSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Проверьте год выпуска!')
         return value
 
+    def validate_genre(self, value):
+        if len(value) == 0:
+            raise serializers.ValidationError()
+        return value
+
 
 class TitleDisplaySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title."""
@@ -61,7 +66,7 @@ class TitleDisplaySerializer(serializers.ModelSerializer):
     category = CategorySerializer()
     rating = serializers.IntegerField(
         max_value=RATING_MAX, min_value=RATING_MIN, required=False)
-    genre = GenreSerializer(many=True, required=False)
+    genre = GenreSerializer(many=True)
 
     class Meta:
         model = Title
@@ -91,7 +96,7 @@ class UserSerializer(serializers.ModelSerializer):
 class CommonUserSerializer(UserSerializer):
     class Meta:
         model = CustomUser
-        fields = ('username', 'email',
+        fields = ('username', 'email', 'role',
                   'first_name', 'last_name', 'bio')
         read_only_fields = ('role',)
 
@@ -132,25 +137,31 @@ class SignupSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         email = attrs.get('email')
         username = attrs.get('username')
+        wrong_username = False
+        wrong_email = False
         try:
             user_with_email = CustomUser.objects.get(email=email)
-            # Если пользователь с таким email существует, проверяем,
-            # совпадает ли username
             if user_with_email.username != username:
-                raise serializers.ValidationError(
-                    f'Username {username} не соответствует указанному email')
+                wrong_username = True
         except CustomUser.DoesNotExist:
             pass
 
         try:
             user_with_username = CustomUser.objects.get(username=username)
-            # Если пользователь с таким username существует, проверяем,
-            # совпадает ли email
             if user_with_username.email != email:
-                raise serializers.ValidationError(
-                    f'Email {email} не соответствует указанному username')
+                wrong_email = True
         except CustomUser.DoesNotExist:
             pass
+
+        if wrong_username and wrong_email:
+            raise serializers.ValidationError(
+                {'username': username,
+                 'email': email})
+        elif wrong_username:
+            raise serializers.ValidationError({'email': email})
+        elif wrong_email:
+            raise serializers.ValidationError({'username': username})
+
         return attrs
 
 
@@ -193,7 +204,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         read_only_fields = ('title',)
-        fields = '__all__'
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -205,4 +216,4 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         read_only_fields = ('review',)
-        fields = '__all__'
+        fields = ('id', 'text', 'author', 'pub_date')

@@ -2,36 +2,27 @@ import random
 
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.generics import get_object_or_404
-from rest_framework.mixins import (
-    ListModelMixin,
-    CreateModelMixin,
-    DestroyModelMixin)
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.filters import SearchFilter
+from rest_framework.generics import get_object_or_404
+from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
+                                   ListModelMixin)
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.viewsets import GenericViewSet
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from .permissions import IsAdmin, IsAdminOrSafeMethod, IsAuthorOrAdmin
-from .filters import TitlesFilter
-from users.models import CustomUser
 from reviews.models import Category, Genre, Review, Title
-from .serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    TitleInputSerializer,
-    TitleDisplaySerializer,
-    UserSerializer,
-    CommonUserSerializer,
-    ReviewSerializer,
-    CommentSerializer,
-    SignupSerializer,
-    TokenSerializer
-)
+from users.models import CustomUser
+from .filters import TitlesFilter
+from .permissions import IsAdmin, IsAdminOrSafeMethod, IsAuthorOrAdmin
+from .serializers import (CategorySerializer, CommentSerializer,
+                          CommonUserSerializer, GenreSerializer,
+                          ReviewSerializer, SignupSerializer,
+                          TitleDisplaySerializer, TitleInputSerializer,
+                          TokenSerializer, UserSerializer)
 
 
 class CreateDestroyListViewSet(
@@ -64,7 +55,10 @@ class TitleViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
-        instance = self.queryset.get(pk=kwargs.get('pk'))
+        try:
+            instance = self.queryset.get(pk=kwargs.get('pk'))
+        except ValueError:
+            return Response(status=status.HTTP_404_NOT_FOUND)
         serializer = TitleInputSerializer(
             instance,
             data=request.data,
@@ -141,7 +135,8 @@ def signup(request):
     код подтверждения.
     """
     serializer = SignupSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     confirmation_code = random.randint(100_000, 999_999)
     send_mail(
         subject='Ваш код подтверждения',
@@ -175,7 +170,7 @@ def signup(request):
 def confirm_signup(request):
     """Подтверждение e-mail пользователя по коду и создание токена."""
     serializer = TokenSerializer(data=request.data)
-    if not serializer.is_valid(raise_exception=True):
+    if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     refresh = RefreshToken.for_user(CustomUser.objects.get(
         username=request.data['username'],
@@ -216,6 +211,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         return get_object_or_404(Review, pk=self.kwargs['review_id'])
 
     def get_queryset(self):
+
         return self.get_review().comments.all().select_related('author')
 
     def perform_create(self, serializer):
