@@ -50,7 +50,7 @@ def import_genre_title(file_path):
         for row in reader:
             GenreTitle.objects.get_or_create(id=row['id'], defaults={
                 'title_id': row['title_id'],
-                'genre_id':row['genre_id'], })
+                'genre_id': row['genre_id'], })
 
 
 def import_users(file_path):
