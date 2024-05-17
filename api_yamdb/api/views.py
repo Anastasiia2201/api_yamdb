@@ -1,5 +1,6 @@
 import random
 
+from django.db.models import Avg
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
@@ -34,7 +35,8 @@ class CreateDestroyListViewSet(
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
 
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg("reviews__score")).order_by(
+        "id")
     serializer_class = TitleDisplaySerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = TitlesFilter
@@ -195,9 +197,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
-        title = Title.objects.get(pk=self.kwargs['title_id'])
-        title.update_ratings()
-        title.save()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -208,11 +207,13 @@ class CommentViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
 
     def get_review(self):
-        return get_object_or_404(Review, pk=self.kwargs['review_id'])
+        return get_object_or_404(
+            Review.objects.filter(title_id=self.kwargs['title_id']),
+            pk=self.kwargs['review_id'])
 
     def get_queryset(self):
-
-        return self.get_review().comments.all().select_related('author')
+        return self.get_review().comments.all().select_related(
+            'author')
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, review=self.get_review())

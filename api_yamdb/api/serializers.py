@@ -6,11 +6,9 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
 
+from reviews.constants import RATING_MAX, RATING_MIN
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import CustomUser
-
-RATING_MIN = 1
-RATING_MAX = 10
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -64,8 +62,7 @@ class TitleDisplaySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title."""
 
     category = CategorySerializer()
-    rating = serializers.IntegerField(
-        max_value=RATING_MAX, min_value=RATING_MIN, required=False)
+    rating = serializers.IntegerField(required=False)
     genre = GenreSerializer(many=True)
 
     class Meta:
@@ -203,7 +200,6 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        read_only_fields = ('title',)
         fields = ('id', 'text', 'author', 'score', 'pub_date')
 
 
@@ -215,5 +211,4 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        read_only_fields = ('review',)
         fields = ('id', 'text', 'author', 'pub_date')
