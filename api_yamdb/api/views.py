@@ -1,5 +1,6 @@
-import random
-
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
@@ -9,20 +10,21 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
                                    ListModelMixin)
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, \
+    IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from reviews.models import Category, Genre, Review, Title
-from users.models import CustomUser
 from .filters import TitlesFilter
 from .permissions import IsAdmin, IsAdminOrSafeMethod, IsAuthorOrAdmin
 from .serializers import (CategorySerializer, CommentSerializer,
-                          CommonUserSerializer, GenreSerializer,
-                          ReviewSerializer, SignupSerializer,
+                          GenreSerializer, ReviewSerializer, SignupSerializer,
                           TitleDisplaySerializer, TitleInputSerializer,
                           TokenSerializer, UserSerializer)
+
+User = get_user_model()
 
 
 class CreateDestroyListViewSet(
@@ -96,7 +98,7 @@ class GenreViewSet(CreateDestroyListViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     """CRUD для пользователей."""
 
-    queryset = CustomUser.objects.all()
+    queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
     pagination_class = PageNumberPagination
     permission_classes = [IsAdmin]
@@ -115,7 +117,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = UserSerializer(request.user)
             return Response(serializer.data)
-        serializer = CommonUserSerializer(
+        serializer = UserSerializer(
             request.user,
             data=request.data,
             partial=True
@@ -135,30 +137,22 @@ def signup(request):
     код подтверждения.
     """
     serializer = SignupSerializer(data=request.data)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    confirmation_code = random.randint(100_000, 999_999)
+    serializer.is_valid(raise_exception=True)
+    try:
+        user, created = User.objects.get_or_create(
+            username=request.data['username'],
+            email=request.data['email']
+        )
+    except User.DoesNotExist:
+        user = None
+    confirmation_code = default_token_generator.make_token(user)
     send_mail(
         subject='Ваш код подтверждения',
         message=f'Ваш код подтверждения {str(confirmation_code)}',
-        from_email='yamdb.ru',
         recipient_list=[request.data['email']],
+        from_email=settings.DEFAULT_FROM_EMAIL,
         fail_silently=False,
     )
-    try:
-        user = CustomUser.objects.get(
-            username=request.data['username'],
-            email=request.data['email'])
-    except CustomUser.DoesNotExist:
-        user = None
-    if user:
-        user.confirmation_code = str(confirmation_code)
-        user.save()
-    else:
-        CustomUser.objects.create(
-            username=request.data['username'],
-            email=request.data['email'],
-            confirmation_code=confirmation_code)
     return Response(
         request.data,
         status=status.HTTP_200_OK
@@ -170,9 +164,8 @@ def signup(request):
 def confirm_signup(request):
     """Подтверждение e-mail пользователя по коду и создание токена."""
     serializer = TokenSerializer(data=request.data)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    refresh = RefreshToken.for_user(CustomUser.objects.get(
+    serializer.is_valid(raise_exception=True)
+    refresh = RefreshToken.for_user(User.objects.get(
         username=request.data['username'],
         confirmation_code=request.data['confirmation_code']
     )
@@ -184,7 +177,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Review."""
 
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthorOrAdmin]
+    permission_classes = [IsAuthorOrAdmin, IsAuthenticatedOrReadOnly]
     http_method_names = ["get", "post", "patch", "delete"]
 
     def get_title(self):
@@ -204,14 +197,13 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Comment."""
 
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthorOrAdmin]
+    permission_classes = [IsAuthorOrAdmin, IsAuthenticatedOrReadOnly]
     http_method_names = ["get", "post", "patch", "delete"]
 
     def get_review(self):
         return get_object_or_404(Review, pk=self.kwargs['review_id'])
 
     def get_queryset(self):
-
         return self.get_review().comments.all().select_related('author')
 
     def perform_create(self, serializer):

@@ -7,7 +7,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.models import CustomUser
+from users.models import User
 
 RATING_MIN = 1
 RATING_MAX = 10
@@ -77,33 +77,14 @@ class TitleDisplaySerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('username', 'email',
                   'first_name', 'last_name', 'bio', 'role')
 
     @staticmethod
     def validate_username(value):
         """Проверка имени пользователя."""
-        if value.lower() == 'me':
-            raise serializers.ValidationError(
-                f'Имя {value} не может быть использовано')
-        if not re.match(r"^[\w.@+-]+\Z", value):
-            raise serializers.ValidationError(
-                f'Имя {value} не может содержать спецсимволы')
-        return value
-
-
-class CommonUserSerializer(UserSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ('username', 'email', 'role',
-                  'first_name', 'last_name', 'bio')
-        read_only_fields = ('role',)
-
-    @staticmethod
-    def validate_username(value):
-        """Проверка имени пользователя."""
-        if value.lower() == 'me':
+        if value == 'me':
             raise serializers.ValidationError(
                 f'Имя {value} не может быть использовано')
         if not re.match(r"^[\w.@+-]+\Z", value):
@@ -120,13 +101,12 @@ class SignupSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ("username", "email")
-        model = CustomUser
-        read_only_fields = ('role',)
+        model = User
 
     @staticmethod
     def validate_username(value):
         """Проверка имени пользователя."""
-        if value.lower() == 'me':
+        if value == 'me':
             raise serializers.ValidationError(
                 f'Имя {value} не может быть использовано')
         if not re.match(r"^[\w.@+-]+\Z", value):
@@ -140,17 +120,17 @@ class SignupSerializer(serializers.ModelSerializer):
         wrong_username = False
         wrong_email = False
         try:
-            user_with_email = CustomUser.objects.get(email=email)
+            user_with_email = User.objects.get(email=email)
             if user_with_email.username != username:
                 wrong_username = True
-        except CustomUser.DoesNotExist:
+        except User.DoesNotExist:
             pass
 
         try:
-            user_with_username = CustomUser.objects.get(username=username)
+            user_with_username = User.objects.get(username=username)
             if user_with_username.email != email:
                 wrong_email = True
-        except CustomUser.DoesNotExist:
+        except User.DoesNotExist:
             pass
 
         if wrong_username and wrong_email:
@@ -171,11 +151,11 @@ class TokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ("username", "confirmation_code")
-        model = CustomUser
+        model = User
 
     def validate(self, attrs):
         """Проверка username и confirmation_code."""
-        user = get_object_or_404(CustomUser, username=attrs['username'])
+        user = get_object_or_404(User, username=attrs['username'])
         if attrs.get('confirmation_code') != user.confirmation_code:
             raise serializers.ValidationError(
                 'Неверный код подтверждения')
