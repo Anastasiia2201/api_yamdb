@@ -26,7 +26,6 @@ class User(AbstractUser):
         default=Roles.USER
     )
     email = models.EmailField('Email', max_length=254, unique=True)
-    confirmation_code = models.CharField('Код подтверждения', max_length=6)
     username = models.CharField(
         'Имя пользователя',
         max_length=150,

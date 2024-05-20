@@ -130,12 +130,8 @@ def signup(request):
     """
     serializer = SignupSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    try:
-        user, created = User.objects.get_or_create(
-            username=request.data["username"], email=request.data["email"]
-        )
-    except User.DoesNotExist:
-        user = None
+    user, created = User.objects.get_or_create(
+        username=request.data["username"], email=request.data["email"])
     confirmation_code = default_token_generator.make_token(user)
     send_mail(
         subject="Ваш код подтверждения",
