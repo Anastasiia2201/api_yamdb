@@ -36,6 +36,7 @@ class TitleInputSerializer(serializers.ModelSerializer):
 
     genre = serializers.SlugRelatedField(
         required=True,
+        allow_empty=False,
         many=True,
         slug_field='slug',
         queryset=Genre.objects.all())
@@ -44,19 +45,13 @@ class TitleInputSerializer(serializers.ModelSerializer):
         model = Title
         fields = ('id', 'name', 'year',
                   'description', 'genre', 'category')
-        read_only_fields = ('rating',)
 
     def validate_year(self, value):
         year = dt.date.today().year
         if value > year:
             raise serializers.ValidationError('Проверьте год выпуска!')
         return value
-
-    def validate_genre(self, value):
-        if len(value) == 0:
-            raise serializers.ValidationError()
-        return value
-
+    
 
 class TitleDisplaySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title."""
