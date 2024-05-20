@@ -29,4 +29,3 @@ class CustomUserAdmin(UserAdmin):
         'is_superuser',
         'role'
     )
-    

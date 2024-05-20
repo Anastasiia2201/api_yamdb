@@ -7,6 +7,7 @@ class GenreInline(admin.TabularInline):
     model = GenreTitle
     extra = 0
 
+
 class TitleAdmin(admin.ModelAdmin):
     inlines = [GenreInline]
     list_display = (
@@ -18,7 +19,7 @@ class TitleAdmin(admin.ModelAdmin):
     )
     list_editable = (
         'category',
-    )    
+    )
     search_fields = ('name',)
     list_display_links = ('name',)
     filter_horizontal = ('genre',)
