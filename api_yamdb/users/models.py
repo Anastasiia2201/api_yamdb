@@ -2,29 +2,37 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-CHOICES = (
-    ('admin', 'Администратор'),
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-)
-
-
-class CustomUser(AbstractUser):
+class Roles:
+    USER = 'user'
     MODERATOR = 'moderator'
     ADMIN = 'admin'
+    CHOICES = (
+        (USER, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Администратор'),
+    )
+
+    @classmethod
+    def max_length_number_role(cls):
+        return max(len(role) for role, _ in cls.CHOICES)
+
+
+class User(AbstractUser):
     bio = models.TextField('Биография', blank=True)
     role = models.CharField(
         'Роль',
-        max_length=10,
-        choices=CHOICES,
-        default='user'
+        max_length=Roles.max_length_number_role(),
+        choices=Roles.CHOICES,
+        default=Roles.USER
     )
     email = models.EmailField('Email', max_length=254, unique=True)
-    confirmation_code = models.CharField(max_length=6)
-    username = models.CharField(max_length=150, unique=True, null=False)
+    username = models.CharField(
+        'Имя пользователя',
+        max_length=150,
+        unique=True,
+    )
 
     class Meta:
-        ordering = ['id']
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
@@ -33,8 +41,8 @@ class CustomUser(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == self.ADMIN
+        return self.role == Roles.ADMIN
 
     @property
     def is_moderator(self):
-        return self.role == self.MODERATOR
+        return self.role == Roles.MODERATOR

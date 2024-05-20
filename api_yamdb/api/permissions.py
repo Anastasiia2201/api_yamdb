@@ -3,13 +3,10 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 class IsAuthorOrAdmin(BasePermission):
     def has_permission(self, request, view):
-        return (
-            request.method in SAFE_METHODS
-            or request.user.is_authenticated
-        )
+        return request.method in SAFE_METHODS or request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        if request.method in ['PATCH', 'DELETE']:
+        if request.method in ["PATCH", "DELETE"]:
             return (
                 obj.author == request.user
                 or request.user.is_moderator
@@ -22,17 +19,18 @@ class IsAuthorOrAdmin(BasePermission):
 class IsAdminOrSafeMethod(BasePermission):
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS or (
-            request.user.is_authenticated and (request.user.is_admin or request.user.is_superuser))
+            request.user.is_authenticated
+            and (request.user.is_admin or request.user.is_superuser)
+        )
 
 
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
-        return (request.user.is_authenticated and (request.user.is_admin
-                or request.user.is_superuser))
+        return request.user.is_authenticated and (
+            request.user.is_admin or request.user.is_superuser
+        )
 
     def has_object_permission(self, request, view, obj):
 
         if request.user.is_authenticated:
-            return (
-                request.user.is_admin
-                or request.user.is_superuser)
+            return request.user.is_admin or request.user.is_superuser
