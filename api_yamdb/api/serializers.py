@@ -37,6 +37,7 @@ class TitleInputSerializer(serializers.ModelSerializer):
 
     genre = serializers.SlugRelatedField(
         required=True,
+        allow_null=False,
         allow_empty=False,
         many=True,
         slug_field='slug',
@@ -48,23 +49,8 @@ class TitleInputSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
 
     def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        try:
-            representation['rating'] = instance.rating
-        except Exception:
-            representation['rating'] = 0
-        representation['genre'] = [
-            {
-                'name': genre.name,
-                'slug': genre.slug
-            }
-            for genre in instance.genre.all()
-        ]
-        representation['category'] = {
-            'name': instance.category.name,
-            'slug': instance.category.slug,
-        }
-        return representation
+        serialiser = TitleDisplaySerializer(instance)
+        return serialiser.data
 
     def validate_year(self, value):
         year = dt.date.today().year
@@ -77,7 +63,7 @@ class TitleDisplaySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title."""
 
     category = CategorySerializer()
-    rating = serializers.IntegerField()
+    rating = serializers.IntegerField(default=0)
     genre = GenreSerializer(many=True)
 
     class Meta:

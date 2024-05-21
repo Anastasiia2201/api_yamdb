@@ -15,7 +15,8 @@ from rest_framework.mixins import (
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (
     IsAuthenticated,
-    IsAuthenticatedOrReadOnly, )
+    IsAuthenticatedOrReadOnly,
+    SAFE_METHODS)
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -51,7 +52,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
 
     queryset = Title.objects.annotate(
-        rating=Avg('reviews__score')).order_by('id')
+        rating=Avg('reviews__score')).order_by('name')
     serializer_class = TitleDisplaySerializer
     filter_backends = (
         DjangoFilterBackend,
@@ -64,14 +65,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):
-        if (
-            self.action == 'create'
-            or self.action == 'partial_update'
-            or self.action == 'update'
-        ):
-            print(7)
-            return TitleInputSerializer
-        return TitleDisplaySerializer
+        if self.action in SAFE_METHODS:
+            return TitleDisplaySerializer
+        return TitleInputSerializer
 
 
 class CategoryViewSet(CreateDestroyListViewSet):
@@ -130,7 +126,7 @@ def signup(request):
     """
     serializer = SignupSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user, created = User.objects.get_or_create(
+    user, _ = User.objects.get_or_create(
         username=request.data['username'], email=request.data['email'])
     confirmation_code = default_token_generator.make_token(user)
     send_mail(

@@ -47,9 +47,7 @@ class Title(models.Model):
     """Модель Title (Произведение)."""
 
     name = models.CharField(verbose_name='Название', max_length=256)
-    year = models.SmallIntegerField(
-        verbose_name='Год создания',
-    )
+    year = models.SmallIntegerField(verbose_name='Год создания')
     description = models.TextField(
         verbose_name='Описание', null=True, default='Описание'
     )
@@ -61,14 +59,8 @@ class Title(models.Model):
         related_name='titles',
     )
     genre = models.ManyToManyField(
-        Genre, blank=False, verbose_name='Жанр', through='GenreTitle'
+        Genre, verbose_name='Жанр', through='GenreTitle'
     )
-
-    def validate_year(self, value):
-        year = dt.date.today().year
-        if value > year:
-            raise ValidationError('Проверьте год выпуска!')
-        return value
 
     class Meta:
         verbose_name = 'Произведение'
@@ -77,6 +69,11 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def clean(self):
+        year = dt.date.today().year
+        if self.year > year:
+            raise ValidationError({'year': 'Проверьте год выпуска!'})
 
 
 class GenreTitle(models.Model):
