@@ -69,7 +69,7 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     def clean(self):
         year = dt.date.today().year
         if self.year > year:

@@ -27,7 +27,8 @@ class User(AbstractUser):
         choices=Roles.CHOICES,
         default=Roles.USER
     )
-    email = models.EmailField('Email', max_length=MAX_LENGTH_EMAIL, unique=True)
+    email = models.EmailField(
+        'Email', max_length=MAX_LENGTH_EMAIL, unique=True)
     username = models.CharField(
         'Имя пользователя',
         max_length=MAX_LENGTH_USERNAME,
